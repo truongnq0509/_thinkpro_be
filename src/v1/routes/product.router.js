@@ -1,7 +1,7 @@
 import express from "express";
 import { get, create, update, remove, restore, store } from "../controllers/product.controller";
-import { checkRole } from "../middlewares/check_permission.middleware";
-import { verifyAccessToken } from "../middlewares/init_jwt.middleware";
+import { checkPermission } from "../middlewares/check-permission.middleware";
+import { verifyAccessToken } from "../middlewares/init-jwt.middleware";
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/", get);
 
 //prive router
-router.use([verifyAccessToken, checkRole]);
+router.use([verifyAccessToken, checkPermission]);
 router.get("/store", store);
 router.post("/", create);
 router.put("/:id", update);

@@ -1,9 +1,10 @@
 import createError from "http-errors";
 import { cloudinary } from "../config/cloudinary.config";
 
+
 export async function getSingleFile(req, res, next) {
 	try {
-		if (!req.file.path) {
+		if (!req.file) {
 			throw createError.BadRequest("No file !!!");
 		}
 
@@ -11,11 +12,11 @@ export async function getSingleFile(req, res, next) {
 			message: "successfully",
 			data: {
 				path: req.file.path,
-				filename: req.file.filename,
-			},
-		});
+				filename: req.file.filename
+			}
+		})
 	} catch (error) {
-		next(error);
+		next(error)
 	}
 }
 
@@ -25,10 +26,11 @@ export async function getMultipleFile(req, res, next) {
 			throw createError.BadRequest("No file !!!");
 		}
 
-		let images = req?.files;
+		let images = req?.files["images"] || req?.files["assets"];
 
-		images = images?.map((img) => {
+		images = images?.map((img, index) => {
 			return {
+				id: index + 1,
 				path: img?.path,
 				filename: img?.filename,
 			};

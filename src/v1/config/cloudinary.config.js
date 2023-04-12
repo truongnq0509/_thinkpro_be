@@ -15,13 +15,17 @@ const storage = new CloudinaryStorage({
 	cloudinary,
 	params: async (req, file) => {
 		let folder = "products";
-		let width = 1000;
-		let height = 1000;
+		let width = 460;
+		let height = 460;
 
 		if (file.fieldname === "assets") {
 			width = 200;
 			height = 200;
-		} else if (file.fieldname === "image") {
+		} else if (file.fieldname == "brand") {
+			width = 68;
+			height = 68;
+			folder = "brands";
+		} else if (file.fieldname === "images" || file.fieldname === "thumbnail") {
 			width = 96;
 			height = 96;
 			folder = "categories";
