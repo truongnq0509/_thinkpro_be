@@ -21,4 +21,14 @@ const signupSchema = joi.object({
 	updatedAt: joi.string().default(() => new Date()),
 });
 
-export { signinSchema, signupSchema };
+const sendSchema = joi.object({
+	email: joi.string().email().required()
+})
+
+const resetPasswordSchema = joi.object({
+	password: joi.string().min(6).required(),
+	token: joi.string().required(),
+	userId: joi.string()
+})
+
+export { signinSchema, signupSchema, sendSchema, resetPasswordSchema };

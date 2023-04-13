@@ -62,4 +62,14 @@ userSchema.pre("save", async function (next) {
 	}
 });
 
+userSchema.pre("updateOne", async function (next) {
+	try {
+		const hashPassword = await bcryptjs.hash(this.getUpdate().$set.password, 10);
+		this.getUpdate().$set.password = hashPassword;
+		next();
+	} catch (error) {
+		next(error)
+	}
+});
+
 export default model("User", userSchema);

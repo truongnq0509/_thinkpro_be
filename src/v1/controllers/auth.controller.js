@@ -2,8 +2,12 @@ import User from "../models/user.model";
 import RefreshToken from "../models/refresh-token.model"
 import createError from "http-errors";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../middlewares/init-jwt.middleware";
-import { signinSchema, signupSchema } from "../validations/auth.validation";
+import { signinSchema, signupSchema, sendSchema, resetPasswordSchema } from "../validations/auth.validation";
 import bcryptjs from "bcryptjs";
+import { sendEmail } from "../utils/send-email.util"
+import dotenv from "dotenv"
+
+dotenv.config()
 
 export async function signin(req, res, next) {
 	try {
@@ -124,7 +128,8 @@ export async function refresh(req, res, next) {
 
 export async function logout(req, res, next) {
 	try {
-		const refreshToken = req.cookie('refreshToken')
+		const refreshToken = req?.cookies?.refreshToken
+
 
 		const userToken = await RefreshToken.findOne({
 			token: refreshToken
@@ -134,7 +139,7 @@ export async function logout(req, res, next) {
 			httpOnly: true
 		}
 		res.clearCookie("refreshToken")
-		res.cookie('loggedInd', "false", optionsCookies)
+		res.cookie('loggedIn', "false", optionsCookies)
 
 		if (!userToken) {
 			return res.json({
@@ -148,6 +153,82 @@ export async function logout(req, res, next) {
 			message: "logged out successfully"
 		})
 	} catch (error) {
+		next(error)
+	}
+}
+
+export async function send(req, res, next) {
+	try {
+		const { error } = await sendSchema.validate(req.body, { abortEarly: false })
+
+		if (error) {
+			const errors = {};
+			error.details.forEach((e) => (errors[e.path] = e.message));
+			throw createError.BadRequest(errors);
+		}
+
+		const user = await User.findOne({
+			email: req.body.email
+		})
+
+		if (!user) {
+			throw createError.BadRequest('Email chưa được đăng ký')
+		}
+
+		let token = await RefreshToken.findOne({
+			userId: user?._id
+		})
+
+		if (!token) {
+			token = await signRefreshToken(user)
+		}
+
+		const link = `${process.env.FE_URL}/reset-password?token=${token.toObject().token || token}&id=${user.toObject()._id}`
+		await sendEmail(user?.email, "Thinkpro ✔✔✔", link)
+
+		return res.json({
+			message: "successfully"
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function resetPassword(req, res, next) {
+	try {
+		const { error } = await resetPasswordSchema.validate(req.body, { abortEarly: false })
+
+		if (error) {
+			const errors = {};
+			error.details.forEach((e) => (errors[e.path] = e.message));
+			throw createError.BadRequest(errors);
+		}
+
+		const user = await User.findOne({
+			_id: req.body.userId,
+		})
+
+		if (!user) {
+			throw createError.BadRequest('Tài khoản không tồn tại')
+		}
+
+		await User.updateOne({
+			_id: req.body.userId,
+		}, {
+			$set: {
+				password: req.body.password
+			}
+		})
+
+		await RefreshToken.deleteOne({
+			userId: req.body.userId
+		})
+
+		return res.json({
+			message: "Thay đổi mật khẩu thành công"
+		})
+	} catch (error) {
+		console.log(error)
 		next(error)
 	}
 }
