@@ -8,13 +8,13 @@ const categorySchema = new Schema(
 	{
 		name: {
 			type: String,
-			required: true,
 		},
 		slug: {
 			type: String,
 			slug: "name",
 			unique: true,
-			required: true,
+			index: true,
+			sparse: true,
 			slugOn: { save: true, update: true, updateOne: true, updateMany: true, findOneAndUpdate: true },
 		},
 		image: {
@@ -22,7 +22,6 @@ const categorySchema = new Schema(
 		},
 		description: {
 			type: String,
-			required: true,
 		},
 		brands: [
 			{

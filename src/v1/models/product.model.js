@@ -9,13 +9,12 @@ const productSchema = new Schema(
 	{
 		name: {
 			type: String,
-			required: true,
 		},
 		slug: {
 			type: String,
 			slug: "name",
 			unique: true,
-			required: true,
+			sparse: true,
 			slugOn: { save: true, update: true, updateOne: true, updateMany: true, findOneAndUpdate: true },
 		},
 		thumbnail: {
