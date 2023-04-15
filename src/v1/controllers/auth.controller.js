@@ -184,7 +184,7 @@ export async function send(req, res, next) {
 		}
 
 		const link = `${process.env.FE_URL}/reset-password?token=${token.toObject().token || token}&id=${user.toObject()._id}`
-		await sendEmail(user?.email, "Thinkpro ✔✔✔", link)
+		await sendEmail(user, "Yêu Cầu Đặt Lại Mật Khẩu Thinkpro", link)
 
 		return res.json({
 			message: "successfully"

@@ -12,7 +12,7 @@ export async function signAccessToken(user) {
 			role: user.role
 		};
 		const options = {
-			expiresIn: "60s",
+			expiresIn: "2h",
 		};
 		const token = jwt.sign(payload, process.env.JWT_SECRET_ACCESS_TOKEN, options);
 		return Promise.resolve(token);
@@ -28,7 +28,7 @@ export async function signRefreshToken(user) {
 			role: user.role
 		};
 		const options = {
-			expiresIn: "60s",
+			expiresIn: "30d",
 		};
 		const token = jwt.sign(payload, process.env.JWT_SECRT_REFRESH_TOKEN, options);
 		// nếu tồn tại thì xóa bỏ token đó đi ngược lại thì tạo

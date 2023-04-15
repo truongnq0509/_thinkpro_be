@@ -37,4 +37,6 @@ app.use((err, req, res, next) => {
 	});
 });
 
-export const viteNodeApp = app;
+app.listen(8080, () => {
+	console.log("http://localhost:8080")
+})
