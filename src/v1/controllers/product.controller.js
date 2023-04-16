@@ -7,8 +7,7 @@ import { resnameKeyToObject } from "../utils/resname_key.util";
 
 export async function get(req, res, next) {
 	try {
-		const slug = req.query.slug || false;
-		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 10 } = req.query;
+		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 10, slug = false } = req.query;
 
 		const options = {
 			page: _page,

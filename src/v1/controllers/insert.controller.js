@@ -160,7 +160,7 @@ export async function insert(req, res, next) {
 			let productIds = []
 			const CategoryOpp = await Category.create({
 				name: category?.name,
-				slug: category?.slug,
+				slug: category?.name,
 				image: category?.thumbnail,
 				description: category?.desc
 			})
@@ -168,7 +168,7 @@ export async function insert(req, res, next) {
 			for (let product of products) {
 				const ProductOpp = await Product.create({
 					name: product?.name,
-					slug: product?.slug || product?.name,
+					slug: product?.name,
 					price: Number(product?.price?.split(".")?.join("") || 10000000),
 					discount: Number(product?.discount?.split(".")?.join("") || 8000000),
 					thumbnail: product?.thumbnail,
@@ -192,7 +192,7 @@ export async function insert(req, res, next) {
 				const children = brand.children
 				const BrandParent = await Brand.create({
 					name: brand?.name,
-					slug: brand?.slug,
+					slug: brand?.name,
 					image: brand?.thumbnail,
 					description: brand?.desc,
 					parentId: null,
@@ -206,14 +206,14 @@ export async function insert(req, res, next) {
 					await Promise.all(children.map(async (item) => {
 						await Brand.create({
 							name: item?.name,
-							slug: item?.slug,
+							slug: item?.name,
 							image: item?.thumbnail,
 							description: item?.desc,
 							parentId: BrandParent?._id
 						})
 					}))
 				}
-				brandIds.push(Brand?._id)
+				brandIds.push(BrandParent?._id)
 			}
 
 			CategoryOpp.brands = brandIds

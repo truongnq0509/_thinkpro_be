@@ -2,7 +2,6 @@ import Brand from "../models/brand.model";
 import Category from "../models/category.model";
 import brandSchema from "../validations/brand.validation";
 import createError from "http-errors";
-import { resnameKeyToObject } from "../utils/resname_key.util";
 
 function nestedBrands(input, parentId) {
 	const output = [];
@@ -34,30 +33,37 @@ function nestedBrands(input, parentId) {
 
 export async function get(req, res, next) {
 	try {
-		const { slug } = req.query;
-		if (slug) {
-			let brand = await Brand.findOne({
-				slug,
-			})
-				.select(["-deleted", "-deletedAt", "-parentId"])
-				.populate({
-					path: "categoryIds",
-					select: ["-brands", "-products", "-deleted", "-deletedAt"],
-				})
-				.populate({
+		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 10, slug = false } = req.query;
+		const optionSub = {
+			select: ["_id", "name", "slug", "image", "description", "products", "categoryIds"],
+			pagingOptions: {
+				page: _page,
+				limit: _limit,
+				sort: {
+					[_sort]: _order == "desc" ? -1 : 1,
+				},
+				populate: {
 					path: "products",
-					select: ["-deleted", "-deletedAt", "-categoryId", "-brandId"],
-				});
+				},
+			},
+		};
+		if (slug) {
+			let brand = await Brand.paginateSubDocs({
+				slug,
+			}, optionSub)
+			let brands = await Brand.find({});
+			let children = nestedBrands(brands, brand._id)
 
 			if (!brand) {
 				throw createError.BadRequest("Thương hiệu này không tồn tại");
 			}
 
-			brand = resnameKeyToObject(brand.toObject(), "categories", "categoryIds");
-
 			return res.json({
 				message: "successfully",
-				data: brand,
+				data: {
+					...brand.toObject(),
+					children
+				},
 			});
 		} else {
 			let brands = await Brand.find({});

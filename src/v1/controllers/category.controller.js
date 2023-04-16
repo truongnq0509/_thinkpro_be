@@ -5,32 +5,47 @@ import createError from "http-errors";
 export async function get(req, res, next) {
 	try {
 		const slug = req.query.slug || false;
+		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 10 } = req.query;
+
+		const optionSub = {
+			select: ["_id", "name", "slug", "image", "description", "products", "brands"],
+			pagingOptions: [
+				{
+					page: _page,
+					limit: _limit,
+					sort: {
+						[_sort]: _order == "desc" ? -1 : 1,
+					},
+					populate: {
+						path: "products",
+						select: ["-categoryId", "-brandId", "-deleted", "-deletedAt", "-createdAt", "-updatedAt", "-status", "-__v"],
+					},
+				},
+				{
+					page: _page,
+					limit: _limit,
+					sort: {
+						[_sort]: _order == "desc" ? -1 : 1,
+					},
+					populate: {
+						path: "brands",
+						select: ["-categoryIds", "-products", "-parentId", "-deleted", "-deletedAt", "-createdAt", "-updatedAt", "-status", "-__v"],
+					},
+				}
+			],
+		};
 		if (slug) {
-			const category = await Category.findOne({
+			const category = await Category.paginateSubDocs({
 				slug,
-			})
-				.select(["-deleted", "-deletedAt", "-parentId"])
-				.populate({
-					path: "brands",
-					select: ["-products", "-deleted", "-deletedAt", "-categoryIds"],
-				})
-				.populate({
-					path: "products",
-					select: ["-deleted", "-deletedAt", "-categoryId"],
-				});
+			}, optionSub)
 
 			if (!category) {
 				throw createError.BadRequest("Danh mục này không tồn tại");
 			}
 
-			const brands = category.toObject().brands.filter((item) => item.parentId == null);
-
 			return res.json({
 				message: "successfully",
-				data: {
-					...category.toObject(),
-					brands,
-				},
+				data: category
 			});
 		} else {
 			let categorise = await Category.find({}).select(["-brands", "-products", "-deleted", "-deletedAt"]);

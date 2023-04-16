@@ -1,8 +1,9 @@
 import slug from "mongoose-slug-updater";
 import mongooseDelete from "mongoose-delete";
+import mongoosePaginate from "mongoose-paginate-v2";
 import { Schema, model } from "mongoose";
 
-const plugins = [slug, mongooseDelete];
+const plugins = [slug, mongooseDelete, mongoosePaginate];
 
 const brandSchema = new Schema(
 	{
