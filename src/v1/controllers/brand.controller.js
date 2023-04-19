@@ -33,17 +33,19 @@ function nestedBrands(input, parentId) {
 
 export async function get(req, res, next) {
 	try {
-		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 10, slug = false } = req.query;
+		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 15, slug = false } = req.query;
 		const optionSub = {
 			select: ["_id", "name", "slug", "image", "description", "products", "categoryIds"],
 			pagingOptions: {
-				page: _page,
-				limit: _limit,
-				sort: {
-					[_sort]: _order == "desc" ? -1 : 1,
-				},
 				populate: {
 					path: "products",
+					options: {
+						page: _page,
+						limit: _limit,
+						sort: {
+							[_sort]: _order == "desc" ? -1 : 1,
+						},
+					}
 				},
 			},
 		};

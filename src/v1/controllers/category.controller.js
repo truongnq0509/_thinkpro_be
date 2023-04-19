@@ -1,32 +1,30 @@
 import Category from "../models/category.model";
+import Product from "../models/product.model"
 import categorySchema from "../validations/category.validation";
 import createError from "http-errors";
 
 export async function get(req, res, next) {
 	try {
 		const slug = req.query.slug || false;
-		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 10 } = req.query;
+		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 15 } = req.query;
 
 		const optionSub = {
 			select: ["_id", "name", "slug", "image", "description", "products", "brands"],
 			pagingOptions: [
 				{
-					page: _page,
-					limit: _limit,
-					sort: {
-						[_sort]: _order == "desc" ? -1 : 1,
-					},
 					populate: {
 						path: "products",
 						select: ["-categoryId", "-brandId", "-deleted", "-deletedAt", "-createdAt", "-updatedAt", "-status", "-__v"],
+						options: {
+							page: _page,
+							limit: _limit,
+							sort: {
+								[_sort]: _order == "desc" ? -1 : 1
+							}
+						},
 					},
 				},
 				{
-					page: _page,
-					limit: _limit,
-					sort: {
-						[_sort]: _order == "desc" ? -1 : 1,
-					},
 					populate: {
 						path: "brands",
 						select: ["-categoryIds", "-products", "-parentId", "-deleted", "-deletedAt", "-createdAt", "-updatedAt", "-status", "-__v"],
