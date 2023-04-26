@@ -210,3 +210,22 @@ export async function restore(req, res, next) {
 		next(error);
 	}
 }
+
+export async function search(req, res, next) {
+	try {
+		const keyword = req.query.keyword
+		const result = await Product.find({
+			"name": {
+				$regex: ".*" + keyword + "*.",
+				$options: "i"
+			}
+		})
+
+		return res.json({
+			data: "successfully",
+			data: result
+		})
+	} catch (error) {
+		next(error)
+	}
+}

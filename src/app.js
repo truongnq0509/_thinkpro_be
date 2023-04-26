@@ -6,10 +6,11 @@ import { connect } from "./v1/config/database.config";
 import createError from "http-errors";
 import cookieParser from "cookie-parser";
 
-const app = express();
-
 // env
 dotenv.config();
+const app = express();
+const port = process.env.PORT || 5000
+
 
 // connection db
 connect();
@@ -37,6 +38,6 @@ app.use((err, req, res, next) => {
 	});
 });
 
-app.listen(8080, () => {
-	console.log("http://localhost:8080")
+app.listen(port, () => {
+	console.log(`http://localhost:${port}`)
 })
