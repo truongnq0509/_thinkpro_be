@@ -220,6 +220,14 @@ export async function search(req, res, next) {
 				$options: "i"
 			}
 		})
+			.select(["-deleted", "-deletedAt", "-createdAt", "-updatedAt"])
+			.populate({
+				path: "categoryId",
+				select: ["-deleted", "-deletedAt", "-categoryId", "-products", "-brands"],
+			}).populate({
+				path: "brandId",
+				select: ["-deleted", "-deletedAt", "-categoryIds", "-products", "-parentId"],
+			});
 
 		return res.json({
 			data: "successfully",
