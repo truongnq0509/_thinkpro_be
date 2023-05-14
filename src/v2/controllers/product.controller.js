@@ -1,7 +1,10 @@
 import Product from "../models/product.model";
 import Category from "../models/category.model";
 import Brand from "../models/brand.model";
-import productSchema from "../validations/product.validation";
+import Variant from "../models/variant.model"
+import Sku from "../models/sku.model"
+import Option from "../models/option.model"
+import productSchema, { productVariantSchema } from "../validations/product.validation";
 import createError from "http-errors";
 import { resnameKeyToObject } from "../utils/resname_key.util";
 
@@ -36,8 +39,48 @@ export async function get(req, res, next) {
 				throw createError.BadRequest("Sản phẩm này không tồn tại");
 			}
 
+			const variations = await Variant.find({
+				productId: product._id
+			})
+				.populate({
+					path: 'optionId',
+					select: 'name'
+				})
+				.populate({
+					path: 'optionValueId',
+					select: 'value label'
+				})
+				.select('-_id optionValueId optionId');
+
+			const groupedVariants = variations.reduce((result, variant) => {
+				const optionId = variant.optionId._id;
+				const optionName = variant.optionId.name;
+				const optionValueId = variant.optionValueId._id;
+				const optionValueValue = variant.optionValueId.value;
+				const optionValueLabel = variant.optionValueId.label;
+
+				if (!result[optionId]) {
+					result[optionId] = {
+						optionId,
+						optionName,
+						optionValues: []
+					};
+				}
+
+				result[optionId].optionValues.push({
+					optionValueId,
+					optionValueValue,
+					optionValueLabel
+				});
+
+				return result;
+			}, {});
+
+			const groupedVariantsArray = Object.values(groupedVariants);
+
 			product = resnameKeyToObject(product.toObject(), "category", "categoryId");
 			product = resnameKeyToObject(product, "brand", "brandId");
+			product.variations = groupedVariantsArray
 
 			return res.json({
 				message: "successfully",
@@ -232,6 +275,105 @@ export async function search(req, res, next) {
 		return res.json({
 			data: "successfully",
 			data: result
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function createProductVariant(req, res, next) {
+	try {
+		const { error } = productVariantSchema.validate(req.body, { abortEarly: false });
+
+		if (error) {
+			const errors = {};
+			error.details.forEach((e) => (errors[e.path] = e.message));
+			throw createError.BadRequest(errors);
+		}
+
+		const { productId, optionId, optionValueId, name, price, discount, stock } = req.body
+
+		const sku = await Sku.create({
+			name,
+			price,
+			discount,
+			stock,
+			productId
+		})
+
+		await Variant.create({
+			skuId: sku._id,
+			optionId,
+			optionValueId,
+			productId
+		})
+
+		return res.status(201).json({
+			message: "successfully"
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function updateProductVariant(req, res, next) {
+	try {
+		const { error } = productVariantSchema.validate(req.body, { abortEarly: false });
+
+		if (error) {
+			const errors = {};
+			error.details.forEach((e) => (errors[e.path] = e.message));
+			throw createError.BadRequest(errors);
+		}
+
+		const { id } = req.params
+
+		const { productId, optionId, optionValueId, name, price, discount, stock } = req.body
+
+		const sku = await Sku.findOneAndUpdate({
+			_id: id
+		}, {
+			name,
+			price,
+			discount,
+			stock,
+			productId
+		})
+
+		await Variant.findOneAndUpdate({
+			skuId: sku._id
+		}, {
+			optionId,
+			optionValueId,
+			productId
+		})
+
+		return res.json({
+			message: "successfully"
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function removeProductVariant(req, res, next) {
+	try {
+		const { id } = req.params
+
+		const sku = await Sku.findById(id)
+
+		if (!sku) {
+			throw createError.BadRequest('Không tìm thấy')
+		}
+
+		await Variant.deleteOne({
+			skuId: id
+		})
+
+		await sku.delete()
+
+		return res.json({
+			message: "successfully"
 		})
 	} catch (error) {
 		next(error)

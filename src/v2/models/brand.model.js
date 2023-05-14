@@ -60,6 +60,7 @@ const brandSchema = new Schema(
 	{
 		collections: "brands",
 		timestamp: true,
+		versionKey: false
 	}
 );
 

@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import initRouterV1 from "./v1/routes/index.router";
 import { connect } from "./v1/config/database.config";
+// import initRouterV2 from "./v2/routes/index.router";
+// import { connect } from "./v2/config/database.config";
 import createError from "http-errors";
 import cookieParser from "cookie-parser";
 
@@ -26,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // router
 initRouterV1(app);
+// initRouterV2(app)
 
 // error handler middleware
 app.use((req, res, next) => {

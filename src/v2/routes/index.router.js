@@ -7,18 +7,22 @@ import inventories from "./inventory.router"
 import insert from "./insert.router"
 import cart from "./cart.router"
 import order from "./order.router"
+import option from "./option.router"
+import optionValue from "./option-value.router"
 
 const routes = (app) => {
-	app.use("/api/v1/categories", categories);
-	app.use("/api/v1/brands", brands);
-	app.use("/api/v1/products", products);
-	app.use("/api/v1/upload", upload);
-	app.use("/api/v1/auth", auth);
-	app.use("/api/v1/inventories", inventories);
-	app.use("/api/v1/cart", cart)
-	app.use("/api/v1/order", order)
+	app.use("/api/v2/categories", categories);
+	app.use("/api/v2/brands", brands);
+	app.use("/api/v2/products", products);
+	app.use("/api/v2/upload", upload);
+	app.use("/api/v2/auth", auth);
+	app.use("/api/v2/inventories", inventories);
+	app.use("/api/v2/cart", cart)
+	app.use("/api/v2/order", order)
+	app.use("/api/v2/option", option)
+	app.use("/api/v2/option-value", optionValue)
 	// insert data
-	app.use("/api/v1/insert", insert);
+	app.use("/api/v2/insert", insert);
 };
 
 export default routes;

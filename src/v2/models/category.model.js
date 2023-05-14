@@ -57,6 +57,7 @@ const categorySchema = new Schema(
 	{
 		collections: "categories",
 		timestamp: true,
+		versionKey: false
 	}
 );
 

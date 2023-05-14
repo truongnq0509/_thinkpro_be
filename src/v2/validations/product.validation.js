@@ -18,4 +18,14 @@ const productSchema = joi.object({
 	deleted: joi.boolean().default(false),
 });
 
+export const productVariantSchema = joi.object({
+	name: joi.string().required(),
+	price: joi.number().required(),
+	discount: joi.number().required(),
+	stock: joi.number().default(0),
+	productId: joi.string().required(),
+	optionId: joi.string().required(),
+	optionValueId: joi.string().required(),
+})
+
 export default productSchema;

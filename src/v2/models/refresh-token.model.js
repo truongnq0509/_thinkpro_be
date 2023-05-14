@@ -12,7 +12,8 @@ const refreshTokenSchema = new Schema({
 	},
 	createdAt: { type: Date, default: Date.now, expires: 30 * 86400 }
 }, {
-	collection: "refreshtokens"
+	collection: "refreshtokens",
+	versionKey: false
 })
 
 

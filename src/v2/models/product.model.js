@@ -70,6 +70,7 @@ const productSchema = new Schema(
 	{
 		collection: "products",
 		timestamp: true,
+		versionKey: false
 	}
 );
 
