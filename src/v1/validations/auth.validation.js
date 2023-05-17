@@ -21,6 +21,17 @@ const signupSchema = joi.object({
 	updatedAt: joi.string().default(() => new Date()),
 });
 
+const updateUserSchema = joi.object({
+	firstName: joi.string().required(),
+	lastName: joi.string().required(),
+	avatar: joi.any().required(),
+	phone: joi.string().length(10).pattern(/^[0-9]+$/).required().messages({
+		"string.pattern.base": "invalid phone"
+	}),
+	email: joi.string().email().required(),
+	role: joi.string().optional().default('user'),
+});
+
 const sendSchema = joi.object({
 	email: joi.string().email().required()
 })
@@ -31,4 +42,4 @@ const resetPasswordSchema = joi.object({
 	userId: joi.string()
 })
 
-export { signinSchema, signupSchema, sendSchema, resetPasswordSchema };
+export { signinSchema, signupSchema, sendSchema, resetPasswordSchema, updateUserSchema };

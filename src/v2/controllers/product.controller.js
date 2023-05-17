@@ -52,6 +52,19 @@ export async function get(req, res, next) {
 				})
 				.select('-_id optionValueId optionId');
 
+			const models = await Variant.find({
+				productId: product._id
+			}).select(['_id', 'skuId', 'optionId', 'optionValueId']).populate({
+				path: "skuId",
+				select: ['_id', 'name', 'price', 'discount']
+			}).populate({
+				path: 'optionId',
+				select: ['_id', 'name']
+			}).populate({
+				path: 'optionValueId',
+				select: ['_id', 'value', 'label']
+			})
+
 			const groupedVariants = variations.reduce((result, variant) => {
 				const optionId = variant.optionId._id;
 				const optionName = variant.optionId.name;
@@ -81,6 +94,7 @@ export async function get(req, res, next) {
 			product = resnameKeyToObject(product.toObject(), "category", "categoryId");
 			product = resnameKeyToObject(product, "brand", "brandId");
 			product.variations = groupedVariantsArray
+			product.models = models
 
 			return res.json({
 				message: "successfully",

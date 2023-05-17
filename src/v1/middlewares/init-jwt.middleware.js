@@ -12,7 +12,7 @@ export async function signAccessToken(user) {
 			role: user.role
 		};
 		const options = {
-			expiresIn: "30s",
+			expiresIn: "3h",
 		};
 		const token = jwt.sign(payload, process.env.JWT_SECRET_ACCESS_TOKEN, options);
 		return Promise.resolve(token);

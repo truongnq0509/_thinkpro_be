@@ -2,6 +2,24 @@ import Inventory from "../models/invetory.model"
 import inventorySchema from "../validations/inventory.validation"
 import createError from "http-errors"
 
+
+export async function get(req, res, next) {
+	try {
+		const { id } = req.params
+		const inventory = await Inventory.findOne({
+			productId: id
+		}).select('quantity')
+		return res.json({
+			message: "successfully",
+			data: {
+				stock: inventory.quantity
+			}
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
 export async function createAndUpdate(req, res, next) {
 	try {
 		const { error } = inventorySchema.validate(req.body, { abortEarly: false });

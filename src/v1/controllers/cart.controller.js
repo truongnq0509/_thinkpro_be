@@ -2,7 +2,6 @@ import Cart from "../models/cart.model"
 import cartSchema from "../validations/cart.validation"
 import Inventory from "../models/invetory.model"
 import createError from "http-errors"
-import { resnameKeyToObject } from "../utils/resname_key.util"
 
 
 export async function get(req, res, next) {
@@ -20,6 +19,18 @@ export async function get(req, res, next) {
 			return acc += product.quantity
 		}, 0)
 
+		const bill = cart.products.reduce((acc, product) => {
+			let total = 0
+
+			if (product.productId.discount) {
+				total = product.quantity * product.productId.discount
+			} else {
+				total = product.quantity * product.productId.price
+			}
+
+			return acc += total
+		}, 0)
+
 		if (!cart) {
 			throw createError.BadRequest('Giỏ hàng không tồn tại!!!')
 		}
@@ -27,7 +38,9 @@ export async function get(req, res, next) {
 		return res.json({
 			message: "successfully",
 			data: {
-				count
+				cart,
+				count,
+				bill
 			}
 		})
 	} catch (error) {

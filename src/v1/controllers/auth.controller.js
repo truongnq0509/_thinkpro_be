@@ -6,7 +6,7 @@ import RefreshToken from "../models/refresh-token.model";
 import User from "../models/user.model";
 import { sendEmail } from "../utils/send-email.util";
 import { v4 as uuidv4 } from "uuid";
-import { resetPasswordSchema, sendSchema, signinSchema, signupSchema } from "../validations/auth.validation";
+import { resetPasswordSchema, sendSchema, signinSchema, signupSchema, updateUserSchema } from "../validations/auth.validation";
 
 dotenv.config()
 
@@ -151,10 +151,74 @@ export async function me(req, res, next) {
 				firstName: user.firstName,
 				lastName: user.lastName,
 				avatar: user.avatar,
-				phone: user.rphoneole,
-				email: user.roemaille,
+				phone: user.phone,
+				email: user.email,
 				role: user.role,
 			}
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function updateUser(req, res, next) {
+	try {
+		const { _id } = req.user
+		const { error } = updateUserSchema.validate(req.body, { abortEarly: false });
+
+		if (error) {
+			const errors = {};
+			error.details.forEach((e) => (errors[e.path] = e.message));
+			throw createError.BadRequest(errors);
+		}
+
+		const user = await User.findOneAndUpdate({
+			_id
+		}, {
+			$set: {
+				...req.body
+			}
+		}, { new: true })
+
+		return res.json({
+			message: "successfully",
+			data: user
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function changePassword(req, res, next) {
+	try {
+		const { _id } = req.user
+		const user = await User.findById(_id)
+
+		if (!user) {
+			throw createError.BadRequest('Tài khoản không tồn tại')
+		}
+
+		const userUpdate = await User.updateOne({
+			_id
+		}, {
+			$set: {
+				password: req.body.password
+			}
+		}, {
+			new: true
+		})
+
+		// Cập nhật lại token db
+		await RefreshToken.findOneAndUpdate({
+			userId: _id
+		}, {
+			$set: {
+				token: await signRefreshToken(userUpdate)
+			}
+		})
+
+		return res.json({
+			message: "successfully",
 		})
 	} catch (error) {
 		next(error)
@@ -233,7 +297,7 @@ export async function send(req, res, next) {
 			token = await signRefreshToken(user)
 		}
 
-		const link = `${process.env.FE_URL}/reset-mat-khau?token=${token.toObject().token || token}&id=${user.toObject()._id}`
+		const link = `${process.env.FE_URL}/reset-mat-khau?token=${token?.toObject()?.token || token}&id=${user?.toObject()?._id}`
 		const html = `
 				<!Doctype>
 				<html lang="en">
