@@ -7,6 +7,9 @@ import axios from "axios"
 import crypto from "crypto"
 import orderSchema from "../validations/order.validation"
 import dotenv from "dotenv"
+import querystring from "query-string"
+import sortObject from 'sortobject'
+import dateFormat from "dateformat"
 
 dotenv.config()
 
@@ -140,14 +143,14 @@ export async function create(req, res, next) {
 
 export async function payMomo(req, res, next) {
 	try {
-		const { bill } = req.body
+		const { bill, orderId: _id } = req.body
 		var partnerCode = "MOMO";
 		var accessKey = "F8BBA842ECF85";
 		var secretkey = "K951B6PE1waDMi640xX08PD3vg6EkVlz";
 		var requestId = partnerCode + new Date().getTime();
 		var orderId = requestId;
 		var orderInfo = "Thanh Toán MoMo";
-		var redirectUrl = "http://localhost:3000/thank";
+		var redirectUrl = process.env.FE_URL + `/thanks?_id=${_id}`;
 		var ipnUrl = "https://callback.url/notify";
 		var amount = bill;
 		var requestType = "payWithATM"
@@ -172,11 +175,80 @@ export async function payMomo(req, res, next) {
 		}
 		const response = await axios.post("https://test-payment.momo.vn/v2/gateway/api/create", requestBody, {
 			headers: {
-				post: 443,
-			}
+				port: 443,
+			},
+			withCredentials: true
 		})
 
-		res.redirect(response.data.payUrl)
+		return res.status(201).json({
+			message: "successfully",
+			data: {
+				url: response?.data?.payUrl
+			}
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function payVnPay(req, res, next) {
+	try {
+		const { bill, orderId: _id } = req.body
+		var ipAddr = req.headers['x-forwarded-for'] ||
+			req.connection.remoteAddress ||
+			req.socket.remoteAddress ||
+			req.connection.socket.remoteAddress;
+		var tmnCode = process.env.VNP_TMNCODE;
+		var secretKey = process.env.VNP_HASHSECRET;
+		var vnpUrl = process.env.VNP_URL;
+		var returnUrl = process.env.FE_URL + `/thanks?_id=${_id}`;
+		var date = new Date();
+		var createDate = dateFormat(date, 'yyyymmddHHmmss');
+		var orderId = dateFormat(date, 'HHmmss');
+		var amount = bill;
+		var bankCode = "NCB";
+
+		var orderInfo = "Nội dung thanh toán";
+		var orderType = "billpayment";
+		var locale = "vn";
+		if (locale === null || locale === '') {
+			locale = 'vn';
+		}
+		var currCode = 'VND';
+		var vnp_Params = {};
+		vnp_Params['vnp_Version'] = '2.1.0';
+		vnp_Params['vnp_Command'] = 'pay';
+		vnp_Params['vnp_TmnCode'] = tmnCode;
+		// vnp_Params['vnp_Merchant'] = ''
+		vnp_Params['vnp_Locale'] = locale;
+		vnp_Params['vnp_CurrCode'] = currCode;
+		vnp_Params['vnp_TxnRef'] = orderId;
+		vnp_Params['vnp_OrderInfo'] = orderInfo;
+		vnp_Params['vnp_OrderType'] = orderType;
+		vnp_Params['vnp_Amount'] = amount * 100;
+		vnp_Params['vnp_ReturnUrl'] = returnUrl;
+		vnp_Params['vnp_IpAddr'] = ipAddr;
+		vnp_Params['vnp_CreateDate'] = createDate;
+		if (bankCode !== null && bankCode !== '') {
+			vnp_Params['vnp_BankCode'] = bankCode;
+		}
+
+		vnp_Params = sortObject(vnp_Params);
+
+		var signData = querystring.stringify(vnp_Params, { encode: false });
+		var hmac = crypto.createHmac("sha512", secretKey);
+		var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+		vnp_Params['vnp_SecureHash'] = signed;
+		vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+
+		console.log(vnpUrl)
+
+		return res.status(201).json({
+			message: "successfully",
+			data: {
+				url: vnpUrl
+			}
+		})
 	} catch (error) {
 		next(error)
 	}
@@ -184,21 +256,48 @@ export async function payMomo(req, res, next) {
 
 export async function getOrderByUser(req, res, next) {
 	try {
-		console.log(req.user)
+		const { _page = 1, _sort = "createdAt", _order = "desc", _limit = 10 } = req.query;
+		const options = {
+			page: _page,
+			limit: _limit,
+			sort: {
+				[_sort]: _order == "desc" ? -1 : 1,
+			},
+			select: ["-deleted", "-deletedAt"],
+		};
 		const { _id: userId } = req.user
-		const orders = await Order.find({
-			userId
-		})
+		const {
+			docs,
+			totalPages,
+			totalDocs,
+			limit,
+			hasPrevPage,
+			pagingCounter,
+			hasNextPage,
+			page,
+			nextPage,
+			prevPage,
+		} = await Order.paginate({ userId }, options);
 
-
-		if (!orders) {
+		if (!docs) {
 			throw createError.BadRequest("Not found!")
 		}
 
 		return res.json({
 			message: "successfully",
-			data: orders
-		})
+			data: docs,
+			paginate: {
+				limit,
+				totalDocs,
+				totalPages,
+				page,
+				pagingCounter,
+				hasPrevPage,
+				hasNextPage,
+				prevPage,
+				nextPage,
+			},
+		});
 	} catch (error) {
 		next(error)
 	}
@@ -220,15 +319,16 @@ export async function cancelOrder(req, res, next) {
 
 		for (let product of products) {
 			const stock = await Inventory.findOne({
-				productId: product.productId
+				productId: product._id
 			})
 
-			stock.quantity += product.quantity
+			stock.quantity += product?.quantity
 			await stock.save()
 		}
 
 		// xóa mềm đơn hàng đó đi
 		order.status = "cancelled"
+		order.createdAt = (new Date()).toISOString()
 		await order.save()
 
 		return res.json({
@@ -264,6 +364,35 @@ export async function orderStatus(req, res, next) {
 		return res.json({
 			message: "successfully",
 			data: order
+		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function updateOrder(req, res, next) {
+	try {
+		const { id } = req.params
+		const order = await Order.findById(id)
+		if (!order) {
+			throw createError.BadRequest('Not found!')
+		}
+
+		const orderUpdate = await Order.findOneAndUpdate({
+			_id: id,
+		}, {
+			$set: {
+				payment: {
+					methods: order?.payment?.methods,
+					status: true,
+					...req.body
+				}
+			}
+		}, { new: true })
+
+		return res.json({
+			message: "successfully",
+			data: orderUpdate
 		})
 	} catch (error) {
 		next(error)

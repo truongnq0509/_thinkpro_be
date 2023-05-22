@@ -28,7 +28,7 @@ const orderSchema = new Schema({
 	status: {
 		type: String,
 		default: "processing",
-		emun: ['processing', "delivering", "cancelled", "delivered"]
+		emun: ['processing', "confirmed", "delivering", "cancelled", "delivered"]
 	},
 	createdAt: {
 		type: Date,

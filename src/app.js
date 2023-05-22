@@ -19,8 +19,8 @@ connect();
 
 // use middleware
 app.use(cors({
+	origin: [process.env.FE_URL, process.env.MOMO_URL],
 	credentials: true,
-	origin: process.env.FE_URL
 }));
 app.use(cookieParser())
 app.use(express.json());
