@@ -18,7 +18,7 @@ export async function connect() {
 			console.log("disconnected");
 		});
 
-		// mongoose.set("strictQuery", false);
+		mongoose.set("strictQuery", false);
 		await mongoose.connect(process.env.MONGODB_URI);
 	} catch (error) {
 		console.log(error)
