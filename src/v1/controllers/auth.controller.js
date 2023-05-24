@@ -83,7 +83,7 @@ export async function signup(req, res, next) {
 		}
 
 		res.cookie("user", { data: { ...req.body }, token }, optionsCookies)
-		const link = `<h5>Vui lòng click vào link để xác minh tài khoản thời gian hiệu lực trong vòng 15' <a href="http://localhost:${process.env.PORT}/api/v1/auth/verify-email/${token}">link</a></h5>`
+		const link = `<h5>Vui lòng click vào link để xác minh tài khoản thời gian hiệu lực trong vòng 15' <a href="https://backend-thinkpro.onrender.com/api/v1/auth/verify-email/${token}">link</a></h5>`
 		await sendEmail({
 			email: req.body.email
 		}, "Thinkpro xác thực danh tính của bạn", link)
