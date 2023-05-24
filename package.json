@@ -2,11 +2,7 @@
 	"name": "thinkpro",
 	"version": "1.0.0",
 	"description": "",
-	"type": "commonjs",
 	"main": "./src/app.js",
-	"engines": {
-		"node": "18.x"
-	},
 	"scripts": {
 		"dev": "nodemon --exec babel-node ./src/app.js --extensions \".js\""
 	},
