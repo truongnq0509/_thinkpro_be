@@ -19,7 +19,10 @@ export async function connect() {
 		});
 
 		mongoose.set("strictQuery", false);
-		await mongoose.connect(process.env.MONGODB_URI);
+		await mongoose.connect(process.env.MONGODB_URI, {
+			useUnifiedTopology: true,
+			useNewUrlParser: true
+		});
 	} catch (error) {
 		console.log(error)
 	}
