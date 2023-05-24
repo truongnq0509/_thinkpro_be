@@ -24,8 +24,11 @@ export async function get(req, res, next) {
 			sort: {
 				[_sort]: _order == "desc" ? -1 : 1,
 			},
+			populate: "userId",
 			select: ["-deleted", "-deletedAt"],
 		};
+
+
 		if (id) {
 			const order = await Order.findById(id)
 
@@ -240,8 +243,6 @@ export async function payVnPay(req, res, next) {
 		var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
 		vnp_Params['vnp_SecureHash'] = signed;
 		vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
-
-		console.log(vnpUrl)
 
 		return res.status(201).json({
 			message: "successfully",

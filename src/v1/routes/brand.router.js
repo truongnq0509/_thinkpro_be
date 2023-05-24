@@ -1,11 +1,12 @@
 import express from "express";
-import { get, create, update, remove, restore } from "../controllers/brand.controller";
+import { get, getParent, create, update, remove, restore } from "../controllers/brand.controller";
 import { checkPermission } from "../middlewares/check-permission.middleware";
 import { verifyAccessToken } from "../middlewares/init-jwt.middleware";
 
 const router = express.Router();
 
 // public router
+router.get("/parent", getParent);
 router.get("/", get);
 
 //prive router

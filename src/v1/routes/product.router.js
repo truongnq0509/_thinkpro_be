@@ -1,5 +1,5 @@
 import express from "express";
-import { get, create, update, remove, restore, store, search } from "../controllers/product.controller";
+import { get, create, update, remove, restore, store, search, dashboard } from "../controllers/product.controller";
 import { checkPermission } from "../middlewares/check-permission.middleware";
 import { verifyAccessToken } from "../middlewares/init-jwt.middleware";
 
@@ -12,6 +12,7 @@ router.get("/search", search)
 //prive router
 router.use([verifyAccessToken, checkPermission]);
 router.get("/store", store);
+router.get("/dashboard", dashboard);
 router.post("/", create);
 router.put("/:id", update);
 router.delete("/:id", remove);

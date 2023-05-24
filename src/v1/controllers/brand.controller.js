@@ -49,6 +49,15 @@ export async function get(req, res, next) {
 				},
 			},
 		};
+
+		const options = {
+			page: _page,
+			limit: _limit,
+			sort: {
+				[_sort]: _order == "desc" ? -1 : 1,
+			},
+		};
+
 		if (slug) {
 			let brand = await Brand.paginateSubDocs({
 				slug,
@@ -68,16 +77,87 @@ export async function get(req, res, next) {
 				},
 			});
 		} else {
-			let brands = await Brand.find({});
+			let {
+				docs,
+				totalPages,
+				totalDocs,
+				limit,
+				hasPrevPage,
+				pagingCounter,
+				hasNextPage,
+				page,
+				nextPage,
+				prevPage,
+			} = await Brand.paginate({}, options);
+			let brands = await Brand.find({})
+
 			brands = nestedBrands(brands);
 
 			return res.json({
 				message: "successfully",
-				data: brands,
+				data: docs,
+				paginate: {
+					limit,
+					totalDocs,
+					totalPages,
+					page,
+					pagingCounter,
+					hasPrevPage,
+					hasNextPage,
+					prevPage,
+					nextPage,
+				},
 			});
 		}
 	} catch (error) {
 		next(error);
+	}
+}
+
+export async function getParent(req, res, next) {
+	try {
+		const { _page = 1, _sort = "createdAt", _order = "asc", _limit = 15 } = req.query;
+		const options = {
+			page: _page,
+			limit: _limit,
+			sort: {
+				[_sort]: _order == "desc" ? -1 : 1,
+			},
+			select: ["-products", "-categoryIds"]
+		};
+
+		let {
+			docs,
+			totalPages,
+			totalDocs,
+			limit,
+			hasPrevPage,
+			pagingCounter,
+			hasNextPage,
+			page,
+			nextPage,
+			prevPage,
+		} = await Brand.paginate({}, options);
+
+		docs = docs?.filter((item) => !item.parentId)
+
+		return res.json({
+			message: "successfully",
+			data: docs,
+			paginate: {
+				limit,
+				totalDocs,
+				totalPages,
+				page,
+				pagingCounter,
+				hasPrevPage,
+				hasNextPage,
+				prevPage,
+				nextPage,
+			},
+		});
+	} catch (error) {
+		next(error)
 	}
 }
 

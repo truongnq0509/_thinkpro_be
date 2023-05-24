@@ -1,6 +1,7 @@
 import Product from "../models/product.model";
 import Category from "../models/category.model";
 import Brand from "../models/brand.model";
+import Order from "../models/order.model";
 import productSchema from "../validations/product.validation";
 import createError from "http-errors";
 import { resnameKeyToObject } from "../utils/resname_key.util";
@@ -233,6 +234,34 @@ export async function search(req, res, next) {
 			data: "successfully",
 			data: result
 		})
+	} catch (error) {
+		next(error)
+	}
+}
+
+export async function dashboard(req, res, next) {
+	try {
+		const products = await Product.find({})
+		const categories = await Category.find({})
+		const brands = await Brand.find({})
+		const orders = await Order.find({ status: { $ne: 'cancelled' } });
+		const payment = await Order.find({ $and: [{ 'payment.status': true }, { 'status': { $ne: 'cancelled' } }] });
+
+		const money = payment.reduce((acc, item) => {
+			return acc += item?.bill
+		}, 0)
+
+		return res.json({
+			message: "successfully",
+			data: {
+				products: products?.length,
+				categories: categories?.length,
+				brands: brands?.length,
+				orders: orders?.length,
+				money
+			}
+		})
+
 	} catch (error) {
 		next(error)
 	}

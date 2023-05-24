@@ -32,6 +32,15 @@ export async function get(req, res, next) {
 				}
 			],
 		};
+
+		const options = {
+			page: _page,
+			limit: _limit,
+			sort: {
+				[_sort]: _order == "desc" ? -1 : 1,
+			},
+			select: ["-brands", "-products", "-deleted", "-deletedAt"],
+		};
 		if (slug) {
 			const category = await Category.paginateSubDocs({
 				slug,
@@ -46,10 +55,32 @@ export async function get(req, res, next) {
 				data: category
 			});
 		} else {
-			let categorise = await Category.find({}).select(["-brands", "-products", "-deleted", "-deletedAt"]);
+			const {
+				docs,
+				totalPages,
+				totalDocs,
+				limit,
+				hasPrevPage,
+				pagingCounter,
+				hasNextPage,
+				page,
+				nextPage,
+				prevPage,
+			} = await Category.paginate({}, options);
 			return res.json({
 				message: "successfully",
-				data: categorise,
+				data: docs,
+				paginate: {
+					limit,
+					totalDocs,
+					totalPages,
+					page,
+					pagingCounter,
+					hasPrevPage,
+					hasNextPage,
+					prevPage,
+					nextPage,
+				},
 			});
 		}
 	} catch (error) {
@@ -92,7 +123,10 @@ export async function update(req, res, next) {
 			{
 				_id: req.params.id,
 			},
-			req.body
+			req.body, {
+			new: true,
+			upsert: true
+		}
 		);
 
 		return res.status(200).json({
