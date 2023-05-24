@@ -4,6 +4,9 @@
 	"description": "",
 	"type": "commonjs",
 	"main": "./src/app.js",
+	"engines": {
+		"node": "14.x"
+	},
 	"scripts": {
 		"dev": "nodemon --exec babel-node ./src/app.js --extensions \".js\""
 	},
