@@ -19,7 +19,7 @@ export async function connect() {
 		});
 
 		mongoose.set("strictQuery", false);
-		await mongoose.connect(process.env.MONGODB_URI, {
+		await mongoose.connect("mongodb://0.0.0.0:27017/thinkpro", {
 			useUnifiedTopology: true,
 			useNewUrlParser: true
 		});
