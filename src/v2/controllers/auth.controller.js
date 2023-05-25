@@ -41,7 +41,9 @@ export async function signin(req, res, next) {
 
 		const optionsCookies = {
 			httpOnly: true,
-			maxAge: 30 * 24 * 60 * 1000
+			maxAge: 30 * 24 * 60 * 1000,
+			sameSite: 'none',
+			secure: true
 		}
 
 		res.cookie("refreshToken", refreshToken, optionsCookies)
@@ -79,7 +81,9 @@ export async function signup(req, res, next) {
 
 		const optionsCookies = {
 			httpOnly: true,
-			maxAge: 15 * 60 * 1000
+			maxAge: 15 * 60 * 1000,
+			sameSite: 'none',
+			secure: true
 		}
 
 		res.cookie("user", { data: { ...req.body }, token }, optionsCookies)
@@ -186,7 +190,9 @@ export async function logout(req, res, next) {
 		})
 
 		const optionsCookies = {
-			httpOnly: true
+			httpOnly: true,
+			sameSite: 'none',
+			secure: true
 		}
 		res.clearCookie("refreshToken")
 		res.cookie('loggedIn', "false", optionsCookies)

@@ -254,7 +254,9 @@ export async function logout(req, res, next) {
 		})
 
 		const optionsCookies = {
-			httpOnly: true
+			httpOnly: true,
+			sameSite: 'none',
+			secure: true
 		}
 		res.clearCookie("refreshToken")
 		res.cookie('loggedIn', "false", optionsCookies)
