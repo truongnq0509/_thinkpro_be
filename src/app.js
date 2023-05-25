@@ -19,7 +19,7 @@ connect();
 
 // use middleware
 app.use(cors({
-	origin: [process.env.FE_URL, process.env.MOMO_URL],
+	origin: [process.env.FE_URL, process.env.MOMO_URL, "http://localhost:3000"],
 	credentials: true,
 }));
 app.use(cookieParser())
